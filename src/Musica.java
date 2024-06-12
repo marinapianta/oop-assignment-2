@@ -3,7 +3,7 @@ public class Musica extends Midia {
     private Categoria categoria;
 
     public Musica(int codigo, String titulo, int ano, Categoria categoria, double duracao) {
-        super(codigo, titulo, ano, categoria);
+        super(codigo, titulo, categoria, ano);
         this.duracao = duracao;
         this.categoria = categoria;
     }
@@ -52,6 +52,6 @@ public class Musica extends Midia {
                 valorPorMinuto = 0.0;
                 break;
         }
-        return valorPorMinuto * getDuracao() / 60;
+        return valorPorMinuto * getDuracao();
     }
 }

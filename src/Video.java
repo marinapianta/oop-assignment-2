@@ -2,7 +2,7 @@ public class Video extends Midia {
     private int qualidade;
 
     public Video(int codigo, String titulo, int ano, Categoria categoria, int qualidade) {
-        super(codigo, titulo, ano, categoria);
+        super(codigo, titulo, categoria, ano);
         this.qualidade = qualidade;
     }
 

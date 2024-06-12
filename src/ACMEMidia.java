@@ -1,164 +1,154 @@
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class ACMEMidia {
-    private Map<Integer, Midia> midias;
-    private ArrayList<String> saida;
+    private Midiateca midiateca;
 
     public ACMEMidia() {
-        midias = new HashMap<>();
-        saida = new ArrayList<>();
+        this.midiateca = new Midiateca();
     }
 
-    private void lerDados(String arquivo) {
-        try (BufferedReader br = new BufferedReader(new FileReader(arquivo))) {
-            String linha;
-            while (!(linha = br.readLine()).equals("-1")) {
-                int codigo = Integer.parseInt(linha);
-                String titulo = br.readLine();
-                int ano = Integer.parseInt(br.readLine());
-                Categoria categoria = Categoria.valueOf(br.readLine());
-                int qualidade = Integer.parseInt(br.readLine());
-                cadastrarVideo(codigo, titulo, ano, categoria, qualidade);
+    public void executa() {
+        try (BufferedReader reader = new BufferedReader(new FileReader("input.txt"));
+             PrintWriter writer = new PrintWriter(new FileWriter("output.txt"))) {
+
+            // Passo 1: Cadastrar vídeos
+            while (true) {
+                String codigoStr = reader.readLine();
+                if (codigoStr.equals("-1")) break;
+                String titulo = reader.readLine();
+                String anoStr = reader.readLine();
+                String categoriaStr = reader.readLine();
+                String qualidadeStr = reader.readLine();
+
+                try {
+                    int codigo = Integer.parseInt(codigoStr);
+                    int ano = Integer.parseInt(anoStr);
+                    Categoria categoria = Categoria.valueOf(categoriaStr.toUpperCase());
+                    int qualidade = Integer.parseInt(qualidadeStr);
+
+                    if (midiateca.buscarPorCodigo(codigo) == null) {
+                        Video video = new Video(codigo, titulo, ano, categoria, qualidade);
+                        midiateca.adicionarMidia(video);
+                        writer.println("1:" + codigo + "," + titulo + "," + ano + "," + categoria.getNome() + "," + qualidade);
+                    } else {
+                        writer.println("1:Erro-video com codigo repetido: " + codigo);
+                    }
+                } catch (Exception e) {
+                    writer.println("1:Erro ao processar video: " + codigoStr + "," + titulo + "," + anoStr + "," + categoriaStr + "," + qualidadeStr);
+                }
             }
-            while (!(linha = br.readLine()).equals("-1")) {
-                int codigo = Integer.parseInt(linha);
-                String titulo = br.readLine();
-                int ano = Integer.parseInt(br.readLine());
-                Categoria categoria = Categoria.valueOf(br.readLine());
-                double duracao = Double.parseDouble(br.readLine());
-                cadastrarMusica(codigo, titulo, ano, categoria, duracao);
+
+            // Passo 2: Cadastrar músicas
+            while (true) {
+                String codigoStr = reader.readLine();
+                if (codigoStr.equals("-1")) break;
+                String titulo = reader.readLine();
+                String anoStr = reader.readLine();
+                String categoriaStr = reader.readLine();
+                String duracaoStr = reader.readLine();
+
+                try {
+                    int codigo = Integer.parseInt(codigoStr);
+                    int ano = Integer.parseInt(anoStr);
+                    Categoria categoria = Categoria.valueOf(categoriaStr.toUpperCase());
+                    double duracao = Double.parseDouble(duracaoStr);
+
+                    if (midiateca.buscarPorCodigo(codigo) == null) {
+                        Musica musica = new Musica(codigo, titulo, ano, categoria, duracao);
+                        midiateca.adicionarMidia(musica);
+                        writer.println("2:" + codigo + "," + titulo + "," + ano + "," + categoria.getNome() + "," + duracao);
+                    } else {
+                        writer.println("2:Erro-musica com codigo repetido: " + codigo);
+                    }
+                } catch (Exception e) {
+                    writer.println("2:Erro ao processar musica: " + codigoStr + "," + titulo + "," + anoStr + "," + categoriaStr + "," + duracaoStr);
+                }
             }
-            int codMidia = Integer.parseInt(br.readLine());
-            mostrarDadosCodigo(codMidia);
 
-            String catMidia = br.readLine();
-            mostrarDadosCategoria(catMidia);
-
-            int qualMidia = Integer.parseInt(br.readLine());
-            mostrarDadosQualidade(qualMidia);
-
-            int codRemove = Integer.parseInt(br.readLine());
-            removerMidia(codRemove);
-
-            mostrarSomatorioLocacoes();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void cadastrarVideo(int codigo, String titulo, int ano, Categoria categoria, int qualidade) {
-        if (midias.containsKey(codigo)) {
-            saida.add("1:Erro-video com codigo repetido: " + codigo);
-        } else {
-            Video video = new Video(codigo, titulo, ano, categoria, qualidade);
-            midias.put(codigo, video);
-            saida.add("1:" + codigo + "," + titulo + "," + ano + "," + categoria + "," + qualidade);
-        }
-    }
-
-    private void cadastrarMusica(int codigo, String titulo, int ano, Categoria categoria, double duracao) {
-        if (midias.containsKey(codigo)) {
-            saida.add("2:Erro-musica com codigo repetido: " + codigo);
-        } else {
-            Musica musica = new Musica(codigo, titulo, ano, categoria, duracao);
-            midias.put(codigo, musica);
-            saida.add("2:" + codigo + "," + titulo + "," + ano + "," + categoria + "," + String.format("%.2f", duracao));
-        }
-    }
-
-
-    private void mostrarDadosCodigo(int codigo) {
-        Midia midia = midias.get(codigo);
-        if (midia == null) {
-            saida.add("3:Codigo inexistente.");
-        } else {
-            saida.add("3:" + midia);
-        }
-    }
-
-    private void mostrarDadosCategoria(String categoria) {
-        boolean encontrado = false;
-        for (Midia midia : midias.values()) {
-            if (midia.getCategoria().equals(categoria)) {
-                if (!encontrado) {
-                    saida.add("4:" + midia);
-                    encontrado = true;
+            // Passo 3: Mostrar dados de uma mídia
+            try {
+                int codigoMidia = Integer.parseInt(reader.readLine());
+                Midia midia = midiateca.buscarPorCodigo(codigoMidia);
+                if (midia == null) {
+                    writer.println("3:Codigo inexistente.");
                 } else {
-                    saida.add(midia.toString());
+                    writer.println("3:" + midia);
                 }
+            } catch (Exception e) {
+                writer.println("3:Erro ao processar código de mídia.");
             }
-        }
-        if (!encontrado) {
-            saida.add("4:Nenhuma midia encontrada.");
-        }
-    }
 
-    private void mostrarDadosQualidade(int qualidade) {
-        boolean encontrado = false;
-        for (Midia midia : midias.values()) {
-            if (midia instanceof Video && ((Video) midia).getQualidade() == qualidade) {
-                if (!encontrado) {
-                    saida.add("5:" + midia);
-                    encontrado = true;
+            // Passo 4: Mostrar dados de mídias de uma categoria
+            try {
+                Categoria categoriaMidia = Categoria.valueOf(reader.readLine().toUpperCase());
+                List<Midia> midiasPorCategoria = midiateca.buscarPorCategoria(categoriaMidia);
+                if (midiasPorCategoria.isEmpty()) {
+                    writer.println("4:Nenhuma midia encontrada.");
                 } else {
-                    saida.add(midia.toString());
+                    for (Midia m : midiasPorCategoria) {
+                        writer.println("4:" + m);
+                    }
                 }
+            } catch (Exception e) {
+                writer.println("4:Erro ao processar categoria de mídia.");
             }
-        }
-        if (!encontrado) {
-            saida.add("5:Qualidade inexistente.");
-        }
-    }
 
-    private void mostrarMaiorDuracaoMusica() {
-        Musica maiorDuracao = null;
-        for (Midia midia : midias.values()) {
-            if (midia instanceof Musica) {
-                if (maiorDuracao == null || ((Musica) midia).getDuracao() > maiorDuracao.getDuracao()) {
-                    maiorDuracao = (Musica) midia;
+            // Passo 5: Mostrar dados de vídeos de uma qualidade
+            try {
+                int qualidadeMidia = Integer.parseInt(reader.readLine());
+                List<Video> videosPorQualidade = midiateca.buscarPorQualidade(qualidadeMidia);
+                if (videosPorQualidade.isEmpty()) {
+                    writer.println("5:Qualidade inexistente.");
+                } else {
+                    for (Video v : videosPorQualidade) {
+                        writer.println("5:" + v);
+                    }
                 }
+            } catch (Exception e) {
+                writer.println("5:Erro ao processar qualidade de vídeo.");
             }
-        }
-        if (maiorDuracao == null) {
-            saida.add("6:Nenhuma música encontrada.");
-        } else {
-            saida.add("6:" + maiorDuracao.getTitulo() + "," + String.format("%.2f", maiorDuracao.getDuracao()));
-        }
-    }
 
-    private void removerMidia(int codigo) {
-        Midia midia = midias.remove(codigo);
-        if (midia == null) {
-            saida.add("7:Codigo inexistente.");
-        } else {
-            saida.add("7:" + midia);
-        }
-    }
-
-    private void mostrarSomatorioLocacoes() {
-        double somatorio = 0;
-        for (Midia midia : midias.values()) {
-            somatorio += midia.calculaLocacao();
-        }
-        if (midias.isEmpty()) {
-            saida.add("8:Nenhuma midia encontrada.");
-        } else {
-            saida.add("8:" + String.format("%.2f", somatorio));
-        }
-    }
-
-    private void processarSaida(String arquivo) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(arquivo))) {
-            for (String linha : saida) {
-                bw.write(linha);
-                bw.newLine();
+            // Passo 6: Mostrar dados da música de maior duração
+            try {
+                Musica maiorDuracaoMusica = midiateca.buscarMusicaMaiorDuracao();
+                if (maiorDuracaoMusica == null) {
+                    writer.println("6:Nenhuma música encontrada.");
+                } else {
+                    writer.println("6:" + maiorDuracaoMusica.getTitulo() + "," + maiorDuracaoMusica.getDuracao());
+                }
+            } catch (Exception e) {
+                writer.println("6:Erro ao processar música de maior duração.");
             }
+
+            // Passo 7: Remover uma mídia
+            try {
+                int codigoRemover = Integer.parseInt(reader.readLine());
+                Midia midiaRemover = midiateca.buscarPorCodigo(codigoRemover);
+                if (midiaRemover == null) {
+                    writer.println("7:Codigo inexistente.");
+                } else {
+                    writer.println("7:" + midiaRemover);
+                    midiateca.removerMidia(codigoRemover);
+                }
+            } catch (Exception e) {
+                writer.println("7:Erro ao processar código de mídia para remoção.");
+            }
+
+            // Passo 8: Mostrar somatório de locações de todas as mídias
+            try {
+                double totalLocacoes = midiateca.calcularSomatorioLocacoes();
+                if (midiateca.getMidias().isEmpty()) {
+                    writer.println("8:Nenhuma midia encontrada.");
+                } else {
+                    writer.println("8:" + String.format("%.2f", totalLocacoes));
+                }
+            } catch (Exception e) {
+                writer.println("8:Erro ao processar somatório de locações.");
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 }
-

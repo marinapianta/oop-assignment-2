@@ -1,79 +1,99 @@
-import java.util.ArrayList;
+import java.util.*;
 
-public class Midiateca {
-    private ArrayList<Midia> listaMidias;
+public class Midiateca implements Iterador {
+    private List<Midia> midias;
+    private int currentIndex;
 
     public Midiateca() {
-        this.listaMidias = new ArrayList<>();
+        this.midias = new ArrayList<>();
+        this.currentIndex = 0;
     }
 
-    public boolean cadastraMidia(Midia midia) {
-        if (consultaPorCodigo(midia.getCodigo()) != null) {
-            return false;
-        } else {
-            listaMidias.add(midia);
-            return true;
+    public void adicionarMidia(Midia midia) {
+        midias.add(midia);
+    }
+
+    public boolean removerMidia(int codigo) {
+        Iterator<Midia> it = midias.iterator();
+        while (it.hasNext()) {
+            Midia midia = it.next();
+            if (midia.getCodigo() == codigo) {
+                it.remove();
+                return true;
+            }
         }
+        return false;
     }
 
-    public Midia consultaPorCodigo(int codigo) {
-        for (Midia m : listaMidias) {
-            if (m.getCodigo() == codigo)
-                return m;
+    public Midia buscarPorCodigo(int codigo) {
+        for (Midia midia : midias) {
+            if (midia.getCodigo() == codigo) {
+                return midia;
+            }
         }
         return null;
     }
 
-    public ArrayList<Midia> consultaPorCategoria(Categoria categoria) {
-        ArrayList<Midia> midiasPorCategoria = new ArrayList<>();
-        for (Midia m : listaMidias) {
-            if (m.getCategoria() == categoria)
-                midiasPorCategoria.add(m);
+    public List<Midia> buscarPorCategoria(Categoria categoria) {
+        List<Midia> result = new ArrayList<>();
+        for (Midia midia : midias) {
+            if (midia.getCategoria() == categoria) {
+                result.add(midia);
+            }
         }
-        return midiasPorCategoria;
+        return result;
     }
 
-    public boolean removeMidia(int codigo) {
-        Midia midia = consultaPorCodigo(codigo);
-        if (midia != null) {
-            listaMidias.remove(midia);
-            return true;
-        } else {
-            return false;
+    public List<Video> buscarPorQualidade(int qualidade) {
+        List<Video> result = new ArrayList<>();
+        for (Midia midia : midias) {
+            if (midia instanceof Video && ((Video) midia).getQualidade() == qualidade) {
+                result.add((Video) midia);
+            }
         }
+        return result;
     }
 
-    public ArrayList<Video> consultaVideosPorQualidade(int qualidade) {
-        ArrayList<Video> videosPorQualidade = new ArrayList<>();
-        for (Midia m : listaMidias) {
-            if (m instanceof Video) {
-                Video video = (Video) m;
-                if (video.getQualidade() == qualidade) {
-                    videosPorQualidade.add(video);
+    public Musica buscarMusicaMaiorDuracao() {
+        Musica maiorDuracaoMusica = null;
+        for (Midia midia : midias) {
+            if (midia instanceof Musica) {
+                Musica musica = (Musica) midia;
+                if (maiorDuracaoMusica == null || musica.getDuracao() > maiorDuracaoMusica.getDuracao()) {
+                    maiorDuracaoMusica = musica;
                 }
             }
         }
-        return videosPorQualidade;
+        return maiorDuracaoMusica;
     }
 
-    public Musica consultaMusicaMaiorDuracao() {
-        Musica musicaMaiorDuracao = null;
-        for (Midia m : listaMidias) {
-            if (m instanceof Musica) {
-                Musica musica = (Musica) m;
-                if (musicaMaiorDuracao == null || musica.getDuracao() > musicaMaiorDuracao.getDuracao()) {
-                    musicaMaiorDuracao = musica;
-                }
-            }
+    public double calcularSomatorioLocacoes() {
+        double total = 0;
+        for (Midia midia : midias) {
+            total += midia.calculaLocacao();
         }
-        return musicaMaiorDuracao;
+        return total;
     }
 
-    public double somatorioLocacoes() {
-        double somatorio = 0.0;
-        for (Midia m : listaMidias) {
-            somatorio += m.calculaLocacao();
+    public List<Midia> getMidias() {
+        return midias;
+    }
+
+    @Override
+    public void reset() {
+        currentIndex = 0;
+    }
+
+    @Override
+    public boolean hasNext() {
+        return currentIndex < midias.size();
+    }
+
+    @Override
+    public Midia next() {
+        if (!hasNext()) {
+            throw new NoSuchElementException();
         }
-        return somatorio;
+        return midias.get(currentIndex++);
     }
 }
